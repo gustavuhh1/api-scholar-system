@@ -1,0 +1,68 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model Admin {
+  id_adm String @id @default(auto()) @map("_id") @db.ObjectId
+  name String
+  email String @unique
+  password String
+  createAt DateTime @default(now()) @map("create_at")
+  colaboradores Colaborador[] @relation("AdminToColab")
+  @@map("admin")
+}
+
+model Colaborador {
+  id_colab String @id @default(auto()) @map("_id") @db.ObjectId
+  name String
+  email String @unique
+  senha String
+  cargo String
+  create_at DateTime @default(now()) @map("create_at")
+
+  // admin reference
+  adminId String @db.ObjectId
+  admin Admin @relation("AdminToColab", fields: [adminId], references: [id_adm])
+
+  // turmas array
+  turmas Turma[] @relation("TurmasDoColab")
+
+  @@map("colaboradores")
+}
+
+model Turma {
+  id_turma String @id @default(auto()) @map("_id") @db.ObjectId
+  nome_turma String
+  serie String
+  id_colab String @db.ObjectId
+  colab Colaborador @relation("TurmasDoColab", fields: [id_colab], references: [id_colab])
+  // alunos Aluno[]
+
+  @@map("turmas")
+  Aluno Aluno[] @relation("TurmaDoAluno")
+}
+
+model Aluno {
+  id_aluno String @id @default(auto()) @map("_id") @db.ObjectId
+  nome String
+  nome_responsavel String
+  email String? @unique
+  data_nasc DateTime
+  relatorio_aprendizado Json?
+  serie String
+  turma String @db.ObjectId
+  id_turma Turma @relation("TurmaDoAluno", fields: [turma], references: [id_turma])
+
+  @@map("alunos")
+}
